@@ -51,6 +51,12 @@ class ConfigReader {
                 webrcon_port: joi.number().min(0).max(65535),
                 webrcon_password: joi.string().required(),
                 reconnect_interval: joi.number().required()
+            }),
+            sql_server: joi.object().required().keys({
+                host: joi.string().required(),
+                user: joi.string().required(),
+                password: joi.string().required(),
+                db: joi.string().required()
             })
         });
 

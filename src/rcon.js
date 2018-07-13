@@ -27,20 +27,22 @@ class Rcon extends EventEmitter {
         this.socket = new WebSocket(`ws://${this.config.host}:${this.config.webrcon_port}/${this.config.webrcon_password}`);
         this.socket.on('error', (error) => {
             logger.error(`[RCON/ERROR]: ${error}`);
+            this.emit('error', error);
         });
 
         this.socket.on('close', (e) => {
             logger.error('[RCON/INFO]: Disconnected');
+            this.emit('close', e);
             this.reconnect();
         });
 
         this.socket.on('open', (e) => {
             logger.success('[RCON/INFO]: Connected');
-            this.sendMessage('O2 now running.');
+            this.emit('open', e);
+            //this.sendMessage('O2 now running.');
         });
 
         this.socket.on('message', (serializedData) => {
-            logger.success('Received a message: ' + serializedData);
             const data = JSON.parse(serializedData);
             switch (data.Type) {
                 case MessageType.CHAT:
@@ -48,9 +50,12 @@ class Rcon extends EventEmitter {
                     this.emit('chat-message', message);
                     break;
                 case MessageType.GENERIC:
+                    if (data.Message.startsWith("[CHAT]")) break;
                     if (data.Message && data.Identifier < RCON_RANGE_MIN && data.Identifier > RCON_RANGE_MAX) {
-                        this.emit('log-message', data.Message);
+                        
                     }
+                    this.emit('data', data.Message);
+                    break;
             }
         });
     }

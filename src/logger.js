@@ -22,6 +22,7 @@ function title(title) {
 }
 
 function splashScreen() {
+    log(colors.cyan('========================================='));
     log(colors.cyan(`O2 v${utils.VERSION}`));
     log(colors.cyan('An admin tool for Rust running on NodeJS.'));
     log(colors.cyan(`Author: ${utils.AUTHOR}`));
