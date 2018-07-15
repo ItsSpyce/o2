@@ -1,18 +1,53 @@
+const utils = require('./utils');
+const logger = require('./logger');
+
+const registeredCommands = Object.create(null);
+const CommandAllowance = {
+    PLAYER_ONLY: 0,
+    SERVER_ONLY: 1,
+    NO_RESTRICTION: -1
+}
+
 class Command {
-    constructor(name, description, level, handler) {
+    static get registeredCommands() {
+        return registeredCommands;
+    }
+
+    static get CommandAllowance() {
+        return CommandAllowance;
+    }
+
+    constructor(name, description, cmdAllowance, level, handler) {
         this.name = name;
         this.description = description;
+        this.cmdAllowance = cmdAllowance;
+        if (typeof level === 'function') {
+            handler = level;
+            level = 0;
+        }
         this.level = level;
         this.handler = handler;
 
         Command.registeredCommands[name] = this;
     }
-}
 
-Command.registeredCommands = Object.create(null);
+    register() {
+        registeredCommands[this.name] = this;
+        logger.success('[CMD/INFO]: Successfully registered command ' + this.name);
+    }
 
-Command.tryExecute = function(msgJson) {
-    var params = convertStringToParamsArray(msgJson.Message);
+    static tryExecute(input, isFromStdin) {
+        var params = utils.convertStringToParamsArray(input);
+        var name = params[0];
+        var cmd = registeredCommands[name];
+        if (!cmd) throw new Error(`command '${name}' doesn't exist`);
+        if (isFromStdin && cmd.cmdAllowance === CommandAllowance.PLAYER_ONLY) {
+            throw new Error(`this command can only be used in game`);
+        } else if (!isFromStdin && cmd.cmdAllowance === CommandAllowance.SERVER_ONLY) {
+            throw new Error(`this command can only be used from a console`);
+        }
+        return cmd.handler(params.slice(1)).toString();
+    }
 }
 
 class CommandExecution {
@@ -21,26 +56,4 @@ class CommandExecution {
     }
 }
 
-function convertStringToParamsArray(input) {
-    let isReadingString = false;
-    let result = [];
-    let currentStep = '';
-    let s = input.split(' ');
-    // we start at 1 because the first item will always be the command
-    for (var i = 1; i < s.length; ++i) {
-        var value = s[i];
-        if (isReadingString) {
-            if (value.endsWith('"')) {
-                // we're closing the string
-                currentStep += ` ${value.substr(0, value.length - 1)}`;
-                isReadingString = false;
-            } else {
-                currentStep += ` ${value}`;
-            }
-        } else {
-            currentStep = value;
-        }
-        result.push(currentStep);
-    }
-    return result;
-}
+module.exports = Command;

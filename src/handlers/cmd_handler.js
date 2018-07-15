@@ -10,3 +10,5 @@ class CommandHandler extends MessageHandler {
         });
     }
 }
+
+module.exports = CommandHandler;

@@ -16,8 +16,8 @@ function getOnlinePlayers(handler) {
     });
 }
 
-function getOfflinePlayers() {
-
+function getAllPlayers() {
+    
 }
 
 /**
@@ -70,7 +70,7 @@ class O2Player {
 module.exports = {
     O2Player,
     getOnlinePlayers,
-    getOfflinePlayers,
+    getAllPlayers,
     LEAVE_EVENT_REGEX,
     JOIN_EVENT_REGEX,
     PLAYER_KILLED_REGEX,

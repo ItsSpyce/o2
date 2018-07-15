@@ -5,10 +5,10 @@ const ConfigReader = require('./config');
 
 const sql = require('./connectors/sql_connector');
 
-const MessageHandler = require('./handler');
-const Command = require('./command');
-const handlerLoader = require('./handlers/handler_loader');
-const cmdLoader = require('./commands/cmd_loader');
+const InputHandler = require('./handlers/stdin_handler');
+const ChatHandler = require('./handlers/chat_handler');
+const CmdHandler = require('./handlers/cmd_handler');
+const PlayerHandler = require('./handlers/player_handler');
 
 class O2 extends EventEmitter {
     constructor(configFilePath) {
@@ -29,7 +29,7 @@ class O2 extends EventEmitter {
             this.rcon = new Rcon(this.config.rust_server);
             this.rcon.init();
             this.rcon.addListener('chat-message', (msg) => {
-                logger.log(`[PLAYER/CHAT](${MessageChannel.Username}): ${msg.Message}`);
+                logger.log(`[PLAYER/CHAT](${msg.Username}): ${msg.Message}`);
                 
             });
             this.rcon.addListener('data', (msg) => {
@@ -40,6 +40,10 @@ class O2 extends EventEmitter {
             logger.error(err);
             process.exit(1);
         });
+    }
+
+    registerInputHandler(input, output) {
+        return InputHandler.registerNew(input, output); 
     }
 }
 

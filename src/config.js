@@ -54,6 +54,7 @@ class ConfigReader {
             }),
             sql_server: joi.object().required().keys({
                 host: joi.string().required(),
+                port: joi.number().min(0).max(65535).default(1433),
                 user: joi.string().required(),
                 password: joi.string().required(),
                 db: joi.string().required()
