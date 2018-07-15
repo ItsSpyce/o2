@@ -9,6 +9,8 @@ const InputHandler = require('./handlers/stdin_handler');
 const ChatHandler = require('./handlers/chat_handler');
 const CmdHandler = require('./handlers/cmd_handler');
 const PlayerHandler = require('./handlers/player_handler');
+const CommandManager = require('./managers/command_manager');
+
 
 class O2 extends EventEmitter {
     constructor(configFilePath) {
@@ -17,6 +19,7 @@ class O2 extends EventEmitter {
         this.rcon = null;
         this.config = null;
         this.configReader = null;
+        this.commandManager = null;
         O2.instance = this;
     }
 
@@ -35,6 +38,8 @@ class O2 extends EventEmitter {
             this.rcon.addListener('data', (msg) => {
                 logger.log(`[SERVER/INFO]: ${msg.toString()}`);
             });
+            this.commandManager = new CommandManager();
+            this.commandManager.registerCommands();
             // TODO: plugins
         }, (err) => {
             logger.error(err);
@@ -43,7 +48,7 @@ class O2 extends EventEmitter {
     }
 
     registerInputHandler(input, output) {
-        return InputHandler.registerNew(input, output); 
+        return InputHandler.registerNew(this, input, output); 
     }
 }
 

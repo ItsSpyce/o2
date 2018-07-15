@@ -13,6 +13,10 @@ function success(log) {
     console.log(colors.green(log));
 }
 
+function debug(log) {
+    if (global.isDebugging) console.log(colors.magenta(`[DEBUG]: ${log}`));
+}
+
 function title(title) {
     const length = title.length;
     const lineLength = Math.floor((30 - (length + 2)) / 2);
@@ -33,6 +37,7 @@ module.exports = {
     log, 
     error,
     success,
+    debug,
     title,
     splashScreen
 }

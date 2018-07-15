@@ -3,6 +3,8 @@ const logger = require('./src/logger');
 const O2 = require('./src/o2');
 const stdin = process.openStdin();
 
-const o2 = new O2(process.argv[2]);
+global.isDebugging = process.argv.indexOf('-d') > -1;
+
+const o2 = new O2(process.argv[2] === '-d' ? null : process.arv[2]);
 o2.run();
 o2.registerInputHandler(process.stdin, process.stdout);

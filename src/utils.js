@@ -1,3 +1,5 @@
+const fs = require('fs');
+
 const VERSION = '0.0.1';
 const AUTHOR = 'Conji';
 const MessageType = {
@@ -28,9 +30,25 @@ function convertStringToParamsArray(input) {
     return result;
 }
 
+function readdirdeep(dir) {
+    let results = [];
+    fs.readdirSync(dir).forEach((file) => {
+        file = `${dir}/${file}`;
+        let stat = fs.lstatSync(file);
+        if (stat && stat.isDirectory()) {
+            results = results.concat(readdirdeep(file));
+        } else {
+            results.push(file);
+        }
+    });
+
+    return results;
+}
+
 module.exports = {
     VERSION,
     AUTHOR,
     MessageType,
-    convertStringToParamsArray
+    convertStringToParamsArray,
+    readdirdeep
 }

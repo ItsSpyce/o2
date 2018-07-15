@@ -44,6 +44,7 @@ class Rcon extends EventEmitter {
 
         this.socket.on('message', (serializedData) => {
             const data = JSON.parse(serializedData);
+            logger.debug(JSON.stringify(data));
             switch (data.Type) {
                 case MessageType.CHAT:
                     const message = JSON.parse(data.Message);

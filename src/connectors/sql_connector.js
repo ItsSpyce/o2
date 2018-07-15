@@ -2,7 +2,6 @@ const sql = require('mysql');
 const logger = require('./../logger');
 
 let connection = null;
-let connected = false;
 
 function config(options) {
     connection = sql.createConnection({
@@ -14,16 +13,17 @@ function config(options) {
     try {
         logger.title('SQL');
         connection.connect();
-        connected = true;
         logger.success('[CONFIG/SQL]: Successfully connected to SQL database');
+        connection.end();
     } catch (e) {
         logger.error('[CONFIG/SQL]: Failed to connect to SQL: ' + e);
     }
 }
 
 function execute(cmd, callback) {
-    if (!connected) throw new Error('.config must be called before executing a query');
+    connection.connect();
     connection.query(cmd, callback);
+    connection.end();
 }
 
 module.exports = {

@@ -2,7 +2,7 @@ const Command = require('./../command');
 
 class HelpCommand extends Command {
     constructor() {
-        super('help', 'Shows all available commands', Command.CommandAllowance.NO_RESTRICTION, (search) => {
+        super('help', 'Shows all available commands', Command.CommandAllowance.NO_RESTRICTION, (server, search) => {
             search = search || '';
             let result = [];
             for (let name in Command.registeredCommands) {
