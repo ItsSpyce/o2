@@ -1,5 +1,7 @@
 const O2 = require('./o2');
 const logger = require('./logger');
+const sql = require('./connectors/sql_connector');
+const CommandSender = require('./cmd_sender');
 
 const LEAVE_EVENT_REGEX = /^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(:\d{1,5})?\/(\d+)\/([A-Za-z0-9\s]+)\s(disconnecting):\s(\w+)$/g;
 const JOIN_EVENT_REGEX = /^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(:\d{1,5})?\/(\d+)\/([A-Za-z0-9\s]+)\s(joined)\s\[(windows)\/\3\]$/g;
@@ -8,7 +10,7 @@ const PLAYER_SUICIDE_REGEX = /^((?:\w?\s?\d?)+)\[\d+\/\d+\] was suicide by Suici
 
 function getOnlinePlayers(handler) {
     if (!handler) return;
-    if (O2.instance === null) return [];
+    if (!O2.instance) return [];
     O2.instance.rcon.sendMessage('playerlist').then((result) => {
         handler(null, result.map(O2Player.fromPlayerList));
     }, (err) => {
@@ -23,8 +25,9 @@ function getAllPlayers() {
 /**
  * A wrapper around a rust player.
  */
-class O2Player {
+class O2Player extends CommandSender {
     constructor(options) {
+        super(this);
         this.steamId = options.steamId;
         this.ip = options.ip;
         this.name = options.name;
@@ -35,6 +38,11 @@ class O2Player {
         this.unspentXp = options.unspentXp;
         this.health = options.health;
         this.commandLevel = options.commandLevel;
+    }
+
+    sendMessage(msg) {
+        // for now, there's no way to PM a player, so we'll have to broadcast it. This means admins need to be careful.
+        O2.instance.sendMessage(msg);
     }
 
     /**

@@ -37,10 +37,9 @@ class Command {
         logger.success('[CMD/INFO]: Successfully registered command ' + this.name);
     }
 
-    static tryExecute(server, input, isFromStdin) {
+    static tryExecute(sender, server, input, isFromStdin) {
         var params = utils.convertStringToParamsArray(input);
-        params.unshift(server);
-        var name = params[1];
+        var name = params[0];
         var cmd = registeredCommands[name];
         if (!cmd) throw new Error(`command '${name}' doesn't exist`);
         if (isFromStdin && cmd.cmdAllowance === CommandAllowance.PLAYER_ONLY) {
@@ -48,7 +47,9 @@ class Command {
         } else if (!isFromStdin && cmd.cmdAllowance === CommandAllowance.SERVER_ONLY) {
             throw new Error(`this command can only be used from a console`);
         }
-        let result = cmd.handler(params.slice(1));
+        params[0] = server;
+        params.unshift(sender);
+        let result = cmd.handler.apply(null, params);
         if (result === undefined) result = '';
         return result.toString();
     }

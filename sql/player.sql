@@ -1,5 +1,4 @@
-CREATE TABLE Players (
-    steam_id TEXT NOT NULL, 
-    player_name TEXT NOT NULL,
-    PRIMARY KEY(steam_id)
+CREATE TABLE IF NOT EXISTS Players (
+    steam_id TINYTEXT NOT NULL, 
+    player_name TINYTEXT NOT NULL
 )

@@ -1,5 +1,4 @@
-CREATE TABLE Roles (
-    steam_id TEXT NOT NULL,
-    player_role INTEGER DEFAULT 0,
-    PRIMARY KEY(steam_id)
+CREATE TABLE IF NOT EXISTS Roles (
+    steam_id TINYTEXT NOT NULL,
+    player_role INTEGER DEFAULT 0
 )

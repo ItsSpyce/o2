@@ -57,7 +57,8 @@ class ConfigReader {
                 port: joi.number().min(0).max(65535).default(1433),
                 user: joi.string().required(),
                 password: joi.string().required(),
-                db: joi.string().required()
+                db: joi.string().required(),
+                startup_scripts: joi.array().unique()
             })
         });
 

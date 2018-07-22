@@ -12,20 +12,24 @@ function convertStringToParamsArray(input) {
     let result = [];
     let currentStep = '';
     let s = input.split(' ');
-    for (var i = 0; i < s.length; ++i) {
+    for (let i = 0; i < s.length; ++i) {
         var value = s[i];
-        if (isReadingString) {
+        if (!isReadingString) {
+            if (value[0] === '"') {
+                currentStep = value.substr(1);
+                isReadingString = true;
+            } else {
+                result.push(value);
+            }
+        } else {
             if (value.endsWith('"')) {
-                // we're closing the string
                 currentStep += ` ${value.substr(0, value.length - 1)}`;
+                result.push(currentStep);
                 isReadingString = false;
             } else {
                 currentStep += ` ${value}`;
             }
-        } else {
-            currentStep = value;
         }
-        result.push(currentStep);
     }
     return result;
 }

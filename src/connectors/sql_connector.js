@@ -1,32 +1,59 @@
 const sql = require('mysql');
 const logger = require('./../logger');
+const utils = require('./../utils');
+const fs = require('fs');
 
-let connection = null;
+const O2Connector = require('./../o2_connector');
 
-function config(options) {
-    connection = sql.createConnection({
-        host: options.host,
-        user: options.user,
-        password: options.password,
-        database: options.db
-    });
-    try {
-        logger.title('SQL');
-        connection.connect();
-        logger.success('[CONFIG/SQL]: Successfully connected to SQL database');
-        connection.end();
-    } catch (e) {
-        logger.error('[CONFIG/SQL]: Failed to connect to SQL: ' + e);
+let instance = null;
+let isConnected = false;
+
+class SqlConnector extends O2Connector {
+    constructor() {
+        super('sql');
+        instance = this;
+        this.onConfig((config) => {
+            const options = config.sql_server;
+            this.connection = sql.createConnection({
+                host: options.host,
+                user: options.user,
+                password: options.password,
+                database: options.db
+            });
+            try {
+                logger.title('SQL');
+                this.connection.connect();
+                logger.success('[CONFIG/SQL]: Successfully connected to SQL database');
+                logger.log('[CONFIG/SQL]: Running SQL startup scripts');
+                let sqlScripts = options.startup_scripts;
+                sqlScripts.forEach((script) => {
+                    let contents = fs.readFileSync(script).toString().replace('\r\n', '');
+                    this.connection.query(contents, (error, results, fields) => {
+                        if (error) {
+                            logger.error(`[CONFIG/SQL]: An error occured at <${script}>: ${error}`);
+                        }
+                    });
+                });
+                isConnected = true;
+            } catch (e) {
+                logger.error('[CONFIG/SQL]: Failed to connect to SQL: ' + e);
+                this.connection.end();
+            }
+        });
+    }
+
+    static get isConnected() {
+        return isConnected;
+    }
+
+    static config(options) {
+        if (!instance) throw new Error('no SQL connector has been initialized');
+        instance.config(options);
+    }
+
+    static execute(cmd, callback) {
+        instance.connection.query(cmd, callback);
     }
 }
 
-function execute(cmd, callback) {
-    connection.connect();
-    connection.query(cmd, callback);
-    connection.end();
-}
-
-module.exports = {
-    config,
-    execute
-}
+module.exports = SqlConnector;

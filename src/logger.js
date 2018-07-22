@@ -9,6 +9,10 @@ function error(log) {
     console.log(colors.red(log));
 }
 
+function warn(log) {
+    console.log(colors.yellow(log));
+}
+
 function success(log) {
     console.log(colors.green(log));
 }
@@ -36,6 +40,7 @@ function splashScreen() {
 module.exports = {
     log, 
     error,
+    warn,
     success,
     debug,
     title,
