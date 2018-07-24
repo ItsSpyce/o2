@@ -9,36 +9,38 @@ let instance = null;
 let isConnected = false;
 
 class SqlConnector extends O2Connector {
-    constructor() {
-        super('sql');
+    constructor(server) {
+        super('sql', server);
         instance = this;
         this.onConfig((config) => {
             const options = config.sql_server;
-            this.connection = sql.createConnection({
+            this.pool = sql.createPool({
+                connectionLimit: 10,
                 host: options.host,
                 user: options.user,
                 password: options.password,
                 database: options.db
             });
-            try {
-                logger.title('SQL');
-                this.connection.connect();
-                logger.success('[CONFIG/SQL]: Successfully connected to SQL database');
-                logger.log('[CONFIG/SQL]: Running SQL startup scripts');
+            this.pool.getConnection((err, connection) => {
+                if (err) {
+                    server.sendError(`Failed to connect to SQL: ${err}`);
+                    return;
+                }
+                server.sendMessage('Successfully connected to SQL database');
+                server.sendMessage('Running SQL startup scripts');
                 let sqlScripts = options.startup_scripts;
                 sqlScripts.forEach((script) => {
-                    let contents = fs.readFileSync(script).toString().replace('\r\n', '');
-                    this.connection.query(contents, (error, results, fields) => {
+                    let contents = fs.readFileSync(script).toString().replace('\r\n', ' ');
+                    connection.query(contents, (error, results, fields) => {
                         if (error) {
-                            logger.error(`[CONFIG/SQL]: An error occured at <${script}>: ${error}`);
+                            server.sendError(`An error occured initializing SQL script <${script}>: ${error}`);
                         }
+
                     });
                 });
+                connection.release();
                 isConnected = true;
-            } catch (e) {
-                logger.error('[CONFIG/SQL]: Failed to connect to SQL: ' + e);
-                this.connection.end();
-            }
+            });
         });
     }
 
@@ -51,8 +53,8 @@ class SqlConnector extends O2Connector {
         instance.config(options);
     }
 
-    static execute(cmd, callback) {
-        instance.connection.query(cmd, callback);
+    static query(cmd, callback) {
+        instance.pool.query(cmd, callback);
     }
 }
 

@@ -52,10 +52,11 @@ class Rcon extends EventEmitter {
                     break;
                 case MessageType.GENERIC:
                     if (data.Message.startsWith("[CHAT]")) break;
-                    if (data.Message && data.Identifier < RCON_RANGE_MIN && data.Identifier > RCON_RANGE_MAX) {
-                        
+                    if (data.Message && commandIdentifiers.indexOf(data.Identifier) === -1) {
+                        this.emit('data', data.Message);
+                    } else {
+                        commandIdentifiers.splice(commandIdentifiers.indexOf(data.Identifier));
                     }
-                    this.emit('data', data.Message);
                     break;
             }
         });
@@ -80,7 +81,7 @@ class Rcon extends EventEmitter {
             Message: command,
             Name: 'WebRcon'
         });
-
+        commandIdentifiers.push(commandIdentifier);
         this.socket.send(packet);
 
         return new Promise((resolve, reject) => {
@@ -89,13 +90,14 @@ class Rcon extends EventEmitter {
 
                 if (data.Type === MessageType.GENERIC && data.Identifier === commandIdentifier) {
                     this.socket.removeEventListener('message', commandResponseCallback);
+                    commandIdentifiers.splice(commandIdentifiers.indexOf(commandIdentifier));
                     return resolve(data.Message);
                 }
             }
 
             setTimeout(() => {
                 this.socket.removeEventListener('message', commandResponseCallback);
-                return resolve(`${command} didn't return a response`);
+                return reject(`${command} didn't return a response`);
             }, 5 * 1000);
 
             this.socket.on('message', commandResponseCallback);
@@ -106,5 +108,7 @@ class Rcon extends EventEmitter {
         return Math.floor(Math.random() * (RCON_RANGE_MAX - RCON_RANGE_MIN)) + RCON_RANGE_MIN;
     }
 }
+
+const commandIdentifiers = [];
 
 module.exports = Rcon;

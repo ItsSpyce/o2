@@ -1,4 +1,3 @@
-const O2 = require('./o2');
 const logger = require('./logger');
 const sql = require('./connectors/sql_connector');
 const CommandSender = require('./cmd_sender');
@@ -8,18 +7,25 @@ const JOIN_EVENT_REGEX = /^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(:\d{1,5})?\/(\d+
 const PLAYER_KILLED_REGEX = /^((?:\w?\s?\d?)+)\[\d+\/\d+\] was killed by /g;
 const PLAYER_SUICIDE_REGEX = /^((?:\w?\s?\d?)+)\[\d+\/\d+\] was suicide by Suicide$/g;
 
-function getOnlinePlayers(handler) {
-    if (!handler) return;
-    if (!O2.instance) return [];
-    O2.instance.rcon.sendMessage('playerlist').then((result) => {
-        handler(null, result.map(O2Player.fromPlayerList));
+function getOnlinePlayers(server, handler) {
+    if (!handler) return [];
+    if (!server) return [];
+    server.rcon.sendCommand('playerlist').then((result) => {
+        let json = JSON.parse(result);
+        handler(null, json.map(O2Player.fromPlayerList));
     }, (err) => {
         handler(err);
     });
 }
 
-function getAllPlayers() {
-    
+function getAllPlayers(sender) {
+    sql.query('SELECT * FROM Players', (err, result, fields) => {
+        if (err) {
+            sender.sendMessage(`Failed to retrieve full player list: ${err}`);
+            return;
+        }
+        return result;
+    });
 }
 
 /**
@@ -27,7 +33,7 @@ function getAllPlayers() {
  */
 class O2Player extends CommandSender {
     constructor(options) {
-        super(this);
+        super(null);
         this.steamId = options.steamId;
         this.ip = options.ip;
         this.name = options.name;

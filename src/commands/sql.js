@@ -4,13 +4,15 @@ const colors = require('colors');
 
 class SqlCommand extends Command {
     constructor() {
-        super('sql', 'Executes a SQL query in the server', Command.CommandAllowance.SERVER_ONLY, (sender, server, query) => {
+        super('sql', 'Executes a SQL query in the server', Command.CommandAllowance.SERVER_ONLY, (sender, server, ...args) => {
+            const query = args.join(' ');
             if (!query || query.length === 0) {
                 return `Current SQL status: ${sql.isConnected ? 'CONNECTED' : 'DISCONNECTED'}`;
             }
             sql.execute(query, (error, results, fields) => {
+                server.sendMessage(colors.italic(colors.blue(`=> ${query}`)));
                 if (error) {
-                    sender.sendMessage(colors.red(error.toString()));
+                    server.sendError(error.toString());
                 } else {
                     return results;
                 }

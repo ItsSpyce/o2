@@ -7,14 +7,20 @@ const LEAVE_EVENT_REGEX = players.LEAVE_EVENT_REGEX;
 const JOIN_EVENT_REGEX = players.JOIN_EVENT_REGEX;
 
 class PlayerHandler extends MessageHandler {
-    constructor(handler) {
+    constructor(check, handler) {
         super((msg) => {
-            return msg.Type === MessageType.GENERIC && 
-                msg.Identifier === 0 && 
-                (LEAVE_EVENT_REGEX.test(msg.Message) || JOIN_EVENT_REGEX.test(msg.Message));
+            return msg.Type === MessageType.GENERIC && msg.Identifier === 0 && check(msg) === true;
         }, (msg) => {
 
         });
+    }
+
+    static get LEAVE_EVENT_REGEX() {
+        return LEAVE_EVENT_REGEX;
+    }
+
+    static get JOIN_EVENT_REGEX() {
+        return JOIN_EVENT_REGEX;
     }
 }
 

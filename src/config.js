@@ -45,20 +45,12 @@ class ConfigReader {
     check() {
         let errors = [];
 
-        const schema = joi.object().options({ abortEarly: false }).keys({
+        const schema = joi.object().options({ abortEarly: false, allowUnknown: true }).keys({
             rust_server: joi.object().required().keys({
                 host: joi.string().required(),
                 webrcon_port: joi.number().min(0).max(65535),
                 webrcon_password: joi.string().required(),
                 reconnect_interval: joi.number().required()
-            }),
-            sql_server: joi.object().required().keys({
-                host: joi.string().required(),
-                port: joi.number().min(0).max(65535).default(1433),
-                user: joi.string().required(),
-                password: joi.string().required(),
-                db: joi.string().required(),
-                startup_scripts: joi.array().unique()
             })
         });
 

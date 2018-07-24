@@ -12,16 +12,13 @@ class InputHandler extends CommandSender {
         this.output = output;
         input.addListener('data', (e) => {
             const data = e.toString().trim();
-            let result = null;
-            try {
-                result = Command.tryExecute(this, this.o2, data, true);
-            } catch (ex) {
-                result = colors.red(`[ERROR]: ${ex.message}`)
-                if (global.isDebugging) {
-                    result += `\r\n${ex.stack}`;
+            Command.tryExecute(this, this.o2, data, true, (err, result) => {
+                if (err) {
+                    this.output.write(colors.red(`[ERROR]: ${err.message}\r\n`));
+                    return;
                 }
-            }
-            this.output.write(result + '\r\n');
+                this.output.write(result + '\r\n');
+            });
         });
     }
 
@@ -30,7 +27,7 @@ class InputHandler extends CommandSender {
      * @param {String} msg 
      */
     sendMessage(msg) {
-        this.output.write(`[SERVER/INFO]: ${msg}\r\n`);
+        this.output.write(`${msg}\r\n`);
     }
 
     /**

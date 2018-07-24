@@ -1,6 +1,8 @@
 const EventEmitter = require('events').EventEmitter;
+const colors = require('colors');
 const logger = require('./logger');
 const Rcon = require('./rcon');
+const EventBus = require('./event-bus');
 const ConfigReader = require('./config');
 
 const O2Connector = require('./o2_connector');
@@ -24,6 +26,7 @@ class O2 extends EventEmitter {
         this.configReader = null;
         this.commandManager = null;
         this.registeredConnectors = [];
+        this.eventBus = new EventBus();
         instance = this;
     }
 
@@ -74,6 +77,17 @@ class O2 extends EventEmitter {
     sendMessage(msg) {
         InputHandler.registeredInputs.forEach((input) => {
             input.sendMessage(msg);
+        });
+    }
+
+    /**
+     * Sends an error to all the input stream connections.
+     * @param {Error|String} error
+     * @memberof O2
+     */
+    sendError(error) {
+        InputHandler.registeredInputs.forEach((input) => {
+            input.sendMessage(colors.red(error));
         });
     }
 

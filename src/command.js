@@ -37,21 +37,41 @@ class Command {
         logger.success('[CMD/INFO]: Successfully registered command ' + this.name);
     }
 
-    static tryExecute(sender, server, input, isFromStdin) {
+    static async tryExecute(sender, server, input, isFromStdin, handler) {
+        if (!input || input.length === 0) {
+            handler(null, '');
+            return;
+        }
         var params = utils.convertStringToParamsArray(input);
         var name = params[0];
         var cmd = registeredCommands[name];
-        if (!cmd) throw new Error(`command '${name}' doesn't exist`);
+        if (!cmd) {
+            handler(new Error(`command '${name}' doesn't exist`));
+            return;
+        }
         if (isFromStdin && cmd.cmdAllowance === CommandAllowance.PLAYER_ONLY) {
-            throw new Error(`this command can only be used in game`);
+            handler(new Error(`this command can only be used in game`));
+            return;
         } else if (!isFromStdin && cmd.cmdAllowance === CommandAllowance.SERVER_ONLY) {
-            throw new Error(`this command can only be used from a console`);
+            handler(new Error(`this command can only be used from a console`));
+            return;
         }
         params[0] = server;
         params.unshift(sender);
-        let result = cmd.handler.apply(null, params);
-        if (result === undefined) result = '';
-        return result.toString();
+        let result = await cmd.handler.apply(null, params);
+        if (result instanceof Promise) {
+            result.then((value) => {
+                console.log('resolved promise');
+                handler(null, value);
+            }).catch((reason) => {
+                handler(reason, null);
+            });
+        }
+        else if (result === undefined) {
+            result = '';
+        } else {
+            handler(null, result.toString());
+        }
     }
 }
 

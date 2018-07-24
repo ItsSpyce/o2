@@ -8,6 +8,7 @@ const PingCmd = require('./../commands/ping');
 const StopCmd = require('./../commands/stop');
 const SqlCmd = require('./../commands/sql');
 const PlayersCmd = require('./../commands/players');
+const SayCmd = require('./../commands/say');
 
 let instancedCommands = [];
 
@@ -18,7 +19,8 @@ class CommandManager {
             new PingCmd(),
             new StopCmd(),
             new SqlCmd(),
-            new PlayersCmd()
+            new PlayersCmd(),
+            new SayCmd()
         ];
     }
 

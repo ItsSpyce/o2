@@ -1,7 +1,7 @@
 const EventEmitter = require('events').EventEmitter;
 
 class O2Connector extends EventEmitter {
-    constructor(name) {
+    constructor(name, server) {
         super();
         this.name = name;
     }
