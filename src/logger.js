@@ -2,23 +2,23 @@ const colors = require('colors');
 const utils = require('./utils');
 
 function log(log) {
-    console.log(log);
+    console.log(`[INFO] ${log}`);
 }
 
 function error(log) {
-    console.log(colors.red(log));
+    console.log(colors.red(`[ERROR] ${log}`));
 }
 
 function warn(log) {
-    console.log(colors.yellow(log));
+    console.log(colors.yellow(`[SEVERE] ${log}`));
 }
 
 function success(log) {
-    console.log(colors.green(log));
+    console.log(colors.green(`[SUCCESS] ${log}`));
 }
 
 function debug(log) {
-    if (global.isDebugging) console.log(colors.magenta(`[DEBUG]: ${log}`));
+    if (global.isDebugging) console.log(colors.magenta(`[DEBUG] ${log}`));
 }
 
 function title(title) {

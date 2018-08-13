@@ -28,6 +28,10 @@ function getAllPlayers(sender) {
     });
 }
 
+function getPlayer(steamId) {
+
+}
+
 /**
  * A wrapper around a rust player.
  */
@@ -85,6 +89,7 @@ module.exports = {
     O2Player,
     getOnlinePlayers,
     getAllPlayers,
+    getPlayer,
     LEAVE_EVENT_REGEX,
     JOIN_EVENT_REGEX,
     PLAYER_KILLED_REGEX,

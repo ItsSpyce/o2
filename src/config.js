@@ -12,30 +12,30 @@ class ConfigReader {
         this.configFilePath = configFilePath;
 
         logger.title('CONFIGURATION');
-        logger.log(`[CONFIG/INFO]: Attempting to load config file ${configFilePath}`);
+        logger.log(`Attempting to load config file ${configFilePath}`);
 
         return new Promise((resolve, reject) => {
             fs.readFile(this.configFilePath, (error, data) => {
                 if (error) {
-                    reject(`[CONFIG/ERROR]: A problem occured when reading config: ${error}`);
+                    reject(`A problem occured when reading config: ${error}`);
                     return;
                 }
 
                 try {
                     this.config = JSON.parse(data);
                 } catch (e) {
-                    reject(`[CONFIG/ERROR]: Config error: ${e}`);
+                    reject(`Config error: ${e}`);
                     return;
                 }
 
-                logger.success(`[CONFIG/INFO]: Loaded config`);
+                logger.success(`Loaded config`);
                 const configCheckResult = this.check();
 
                 if (configCheckResult.length > 0) {
                     const errors = configCheckResult.map((e) => `[${e.path}] ${e.message}`);
-                    reject(`[CONFIG/ERROR]: ${configCheckResult.length} errors in the config:\n- ${errors.join('\n- ')}`);
+                    reject(`${configCheckResult.length} errors in the config:\n- ${errors.join('\n- ')}`);
                 } else {
-                    logger.success('[CONFIG/INFO]: Config OK');
+                    logger.success('Config OK');
                     resolve(this.config);
                 }
             });

@@ -1,12 +1,12 @@
 const Command = require('./../command');
 
-class PingCommand extends Command {
+class RawCommand extends Command {
     constructor() {
-        super('ping', 'Pings the server', Command.CommandAllowance.NO_RESTRICTION, (sender, server) => {
+        super('raw', 'Executes a raw RCON command against the server', Command.CommandAllowance.SERVER_ONLY, (sender, server, ...args) => {
             return new Promise((resolve, reject) => {
                 try {
-                    server.rcon.sendCommand('env.time').then((result) => {
-                        resolve('Pong!');
+                    server.rcon.sendCommand(args.join(' ')).then((result) => {
+                        resolve(result);
                     }, (err) => {
                         reject(err);
                     });
@@ -18,4 +18,4 @@ class PingCommand extends Command {
     }
 }
 
-module.exports = PingCommand;
+module.exports = RawCommand;

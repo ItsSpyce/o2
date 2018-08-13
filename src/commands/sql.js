@@ -9,7 +9,7 @@ class SqlCommand extends Command {
             if (!query || query.length === 0) {
                 return `Current SQL status: ${sql.isConnected ? 'CONNECTED' : 'DISCONNECTED'}`;
             }
-            sql.execute(query, (error, results, fields) => {
+            sql.query(query, (error, results, fields) => {
                 server.sendMessage(colors.italic(colors.blue(`=> ${query}`)));
                 if (error) {
                     server.sendError(error.toString());

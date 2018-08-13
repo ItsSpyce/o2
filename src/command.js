@@ -34,7 +34,7 @@ class Command {
 
     register() {
         registeredCommands[this.name] = this;
-        logger.success('[CMD/INFO]: Successfully registered command ' + this.name);
+        logger.success('Successfully registered command ' + this.name);
     }
 
     static async tryExecute(sender, server, input, isFromStdin, handler) {

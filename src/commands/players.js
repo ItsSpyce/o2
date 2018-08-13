@@ -9,7 +9,7 @@ class PlayerCommand extends Command {
                     if (err) {
                         return reject(err);
                     }
-                    if (args.indexOf('-c')) {
+                    if (args.indexOf('-c') > -1) {
                         return resolve(`${players.length} player${players.length === 1 ? ' is' : 's are'} online`);
                     }
                     return resolve(`${players.length} player${players.length === 1 ? ' is' : 's are'} online\r\n` + players.map((p) => {

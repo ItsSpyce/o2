@@ -14,7 +14,7 @@ class InputHandler extends CommandSender {
             const data = e.toString().trim();
             Command.tryExecute(this, this.o2, data, true, (err, result) => {
                 if (err) {
-                    this.output.write(colors.red(`[ERROR]: ${err.message}\r\n`));
+                    this.output.write(colors.red(`${err.message}\r\n`));
                     return;
                 }
                 this.output.write(result + '\r\n');

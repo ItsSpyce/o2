@@ -9,6 +9,7 @@ const StopCmd = require('./../commands/stop');
 const SqlCmd = require('./../commands/sql');
 const PlayersCmd = require('./../commands/players');
 const SayCmd = require('./../commands/say');
+const RawCmd = require('./../commands/raw');
 
 let instancedCommands = [];
 
@@ -20,7 +21,8 @@ class CommandManager {
             new StopCmd(),
             new SqlCmd(),
             new PlayersCmd(),
-            new SayCmd()
+            new SayCmd(),
+            new RawCmd()
         ];
     }
 

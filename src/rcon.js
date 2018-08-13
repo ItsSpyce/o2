@@ -26,25 +26,24 @@ class Rcon extends EventEmitter {
     connect() {
         this.socket = new WebSocket(`ws://${this.config.host}:${this.config.webrcon_port}/${this.config.webrcon_password}`);
         this.socket.on('error', (error) => {
-            logger.error(`[RCON/ERROR]: ${error}`);
+            logger.error(`(RCON): ${error}`);
             this.emit('error', error);
         });
 
         this.socket.on('close', (e) => {
-            logger.error('[RCON/INFO]: Disconnected');
+            logger.error('RCON disconnected');
             this.emit('close', e);
             this.reconnect();
         });
 
         this.socket.on('open', (e) => {
-            logger.success('[RCON/INFO]: Connected');
+            logger.success('Connected');
             this.emit('open', e);
             //this.sendMessage('O2 now running.');
         });
 
         this.socket.on('message', (serializedData) => {
             const data = JSON.parse(serializedData);
-            logger.debug(JSON.stringify(data));
             switch (data.Type) {
                 case MessageType.CHAT:
                     const message = JSON.parse(data.Message);
@@ -63,7 +62,7 @@ class Rcon extends EventEmitter {
     }
 
     reconnect() {
-        logger.log(`[RCON/INFO]: Trying to reconnect with a timeout of ${this.config.reconnect_interval}ms`);
+        logger.log(`Trying to reconnect with a timeout of ${this.config.reconnect_interval}ms`);
         setTimeout(() => {
             this.connect();
         }, this.config.reconnect_interval);
