@@ -1,4 +1,0 @@
-CREATE TABLE IF NOT EXISTS Roles (
-    steam_id TINYTEXT NOT NULL,
-    player_role INTEGER DEFAULT 0
-)

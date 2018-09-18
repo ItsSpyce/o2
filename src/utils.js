@@ -19,7 +19,7 @@ function convertStringToParamsArray(input) {
                 currentStep = value.substr(1);
                 isReadingString = true;
             } else {
-                result.push(value);
+                result.push(normalizeValue(value));
             }
         } else {
             if (value.endsWith('"')) {
@@ -32,6 +32,15 @@ function convertStringToParamsArray(input) {
         }
     }
     return result;
+}
+
+function normalizeValue(value) {
+    if (value === 'true') return true;
+    if (value === 'false') return false;
+    if (!isNaN(parseInt(value))) return parseInt(value);
+    if (!isNaN(parseFloat(value))) return parseFloat(value);
+    if (value[0] === '{' && value.endsWith('}')) return JSON.parse(value);
+    return value;
 }
 
 function readdirdeep(dir) {

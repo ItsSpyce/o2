@@ -6,8 +6,8 @@ class PlayerKilledEvent extends PlayerEvent {
         super(event);
         this.wasSuicide = wasSuicide || false;
         if (wasSuicide) {
-            const data = Players.PLAYER_SUICIDE_REGEX.exec(event);
-            this.player = data[0];
+            const data = Players.PLAYER_SUICIDE_REGEX.exec(this._rconMessage);
+            
         }
     }
 }

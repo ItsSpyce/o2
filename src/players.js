@@ -2,40 +2,19 @@ const logger = require('./logger');
 const sql = require('./connectors/sql_connector');
 const CommandSender = require('./cmd_sender');
 
-const LEAVE_EVENT_REGEX = /^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(:\d{1,5})?\/(\d+)\/([A-Za-z0-9\s]+)\s(disconnecting):\s(\w+)$/g;
-const JOIN_EVENT_REGEX = /^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(:\d{1,5})?\/(\d+)\/([A-Za-z0-9\s]+)\s(joined)\s\[(windows)\/\3\]$/g;
+const LEAVE_EVENT_REGEX = /^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d{1,5})?\/(\d+)\/([A-Za-z0-9\s]+)\s(disconnecting):\s(\w+)$/i;
+const JOIN_EVENT_REGEX = /^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d{1,5})?\/(\d+)\/([A-Za-z0-9\s]+)\s(joined)\s\[(windows)\/\3\]$/i;
 const PLAYER_KILLED_REGEX = /^((?:\w?\s?\d?)+)\[\d+\/\d+\] was killed by /g;
 const PLAYER_SUICIDE_REGEX = /^((?:\w?\s?\d?)+)\[\d+\/\d+\] was suicide by Suicide$/g;
-
-function getOnlinePlayers(server, handler) {
-    if (!handler) return [];
-    if (!server) return [];
-    server.rcon.sendCommand('playerlist').then((result) => {
-        let json = JSON.parse(result);
-        handler(null, json.map(O2Player.fromPlayerList));
-    }, (err) => {
-        handler(err);
-    });
-}
-
-function getAllPlayers(sender) {
-    sql.query('SELECT * FROM Players', (err, result, fields) => {
-        if (err) {
-            sender.sendMessage(`Failed to retrieve full player list: ${err}`);
-            return;
-        }
-        return result;
-    });
-}
-
-function getPlayer(steamId) {
-
-}
 
 /**
  * A wrapper around a rust player.
  */
 class O2Player extends CommandSender {
+    /**
+     * 
+     * @param {{steamId:String,ip:String,name:String,ping:Number,connectedSeconds:Number,voiationLevel:Number,currentLevel:Number,unspentXp:Number,health:Number,level:Number}} options 
+     */
     constructor(options) {
         super(null);
         this.steamId = options.steamId;
@@ -47,12 +26,38 @@ class O2Player extends CommandSender {
         this.currentLevel = options.currentLevel;
         this.unspentXp = options.unspentXp;
         this.health = options.health;
-        this.commandLevel = options.commandLevel;
+        this.level = options.level || 0;
     }
 
     sendMessage(msg) {
         // for now, there's no way to PM a player, so we'll have to broadcast it. This means admins need to be careful.
         O2.instance.sendMessage(msg);
+    }
+
+    save() {
+        sql.query(`UPDATE Players WHERE SteamID = ${this.steamId}`, (err, result, fields) => {
+            if (err) {
+                logger.error(`An error occured when saving player ${this.name}: ${err}`);
+            }
+        });
+    }
+
+    saveNew() {
+        sql.query(`INSERT INTO Players (SteamID, PlayerName, Level) VALUES (${this.steamId}, ${this.playerName}, ${this.level})`, (err, result, fields) => {
+            if (err) {
+                logger.error(`An error occured when inserting player ${this.name}: ${err}`);
+            }
+        });
+    }
+
+    isOnline(server) {
+        return new Promise((resolve, reject) => {
+            O2Player.getOnlinePlayers(server).then((players) => {
+                return resolve(players.map((p) => { return p.steamId }).indexOf(this.steamId) > -1);
+            }, (err) => {
+                return reject(err);
+            });
+        });
     }
 
     /**
@@ -83,15 +88,65 @@ class O2Player extends CommandSender {
 
         return player;
     }
+
+    static getOnlinePlayers(server) {
+        return new Promise((resolve, reject) => {
+            if (!server) return [];
+            server.rcon.sendCommand('playerlist').then((result) => {
+                let json = JSON.parse(result);
+                return resolve(null, json.map(O2Player.fromPlayerList));
+            }, (err) => {
+                return reject(err);
+            });
+        })
+    }
+    
+    static getAllPlayers(sender) {
+        sql.query('SELECT * FROM Players', (err, result, fields) => {
+            if (err) {
+                sender.sendMessage(`Failed to retrieve full player list: ${err}`);
+                return;
+            }
+            return result;
+        });
+    }
+    
+    /**
+     * 
+     * @param {Number} steamId 
+     * @returns {Promise<O2Player>}
+     */
+    static getPlayer(steamId) {
+        return new Promise((resolve, reject) => {
+            sql.query(`SELECT * FROM Players WHERE SteamID = ${steamId}`, (err, result, fields) => {
+                if (err) {
+                    return reject(err);
+                }
+                return resolve(new O2Player({ steamId, name: result.PlayerName, level: result.Level }));
+            });
+        });
+    }
+
+    /**
+     * 
+     * @param {String} name 
+     * @returns {Promise<O2Player>}
+     */
+    static getPlayerFromName(name) {
+        return new Promise((resolve, reject) => {
+            sql.query(`SELECT * FROM Players WHERE PlayerName CONTAINS ${name}`, (err, result, fields) => {
+                if (err) {
+                    return reject(err);
+                }
+                if (Array.isArray(result)) result = result[0];
+                return resolve(new O2Player({ steamId: result.SteamID, name: result.PlayerName, level: result.Level }));
+            });
+        });
+    }
 }
 
-module.exports = {
-    O2Player,
-    getOnlinePlayers,
-    getAllPlayers,
-    getPlayer,
-    LEAVE_EVENT_REGEX,
-    JOIN_EVENT_REGEX,
-    PLAYER_KILLED_REGEX,
-    PLAYER_SUICIDE_REGEX
-}
+module.exports = O2Player;
+module.exports.JOIN_EVENT_REGEX = JOIN_EVENT_REGEX;
+module.exports.LEAVE_EVENT_REGEX = LEAVE_EVENT_REGEX;
+module.exports.PLAYER_KILLED_REGEX = PLAYER_KILLED_REGEX;
+module.exports.PLAYER_SUICIDE_REGEX = PLAYER_SUICIDE_REGEX;

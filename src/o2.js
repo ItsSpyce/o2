@@ -54,8 +54,11 @@ class O2 extends EventEmitter {
                 this.sendMessage(`${event.username}: ${event.message}`);
             });
             this.eventBus.on('playerJoin', (event) => {
-                this.sendMessage(`${event.username} joined the game`);
-            })
+                this.sendMessage(`${event.username} joined the game.`);
+            });
+            this.eventBus.on('playerQuit', (event) => {
+                this.sendMessage(`${event.username} left the game.`);
+            });
             this.commandManager = new CommandManager();
             this.commandManager.registerCommands();
             

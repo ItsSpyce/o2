@@ -1,7 +1,7 @@
-CREATE TABLE IF NOT EXISTS PV (
-    steam_id TINYTEXT NOT NULL,
-    killer_id TINYTEXT NULL,
-    death_date INTEGER NOT NULL,
-    reason TINYTEXT NOT NULL,
-    from_player BIT NOT NULL
+CREATE TABLE PV (
+    SteamID TINYTEXT NOT NULL,
+    KillerID TINYTEXT NULL,
+    DeathDate INTEGER NOT NULL,
+    Reason TINYTEXT NOT NULL,
+    FromPlayer BIT NOT NULL
 )

@@ -1,4 +1,5 @@
-CREATE TABLE IF NOT EXISTS Players (
-    steam_id TINYTEXT NOT NULL, 
-    player_name TINYTEXT NOT NULL
+CREATE TABLE Players (
+    SteamID TINYTEXT NOT NULL, 
+    PlayerName TINYTEXT NOT NULL,
+    Level INT NOT NULL
 )

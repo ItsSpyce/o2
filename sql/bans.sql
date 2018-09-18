@@ -1,7 +1,7 @@
-CREATE TABLE IF NOT EXISTS Bans (
-    steam_id TINYTEXT NOT NULL,
-    banned_by_id TINYTEXT NOT NULL,
-    reason TINYTEXT NOT NULL,
-    enforced_on INT NOT NULL,
-    duration INT NOT NULL
+CREATE TABLE Bans (
+    SteamID TINYTEXT NOT NULL,
+    BannedByID TINYTEXT NOT NULL,
+    Reason TINYTEXT NOT NULL,
+    EnforcedOn INT NOT NULL,
+    Duration INT NOT NULL
 )

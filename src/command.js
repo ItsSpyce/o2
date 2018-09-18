@@ -37,6 +37,14 @@ class Command {
         logger.success('Successfully registered command ' + this.name);
     }
 
+    /**
+     * 
+     * @param {*} sender 
+     * @param {*} server 
+     * @param {String} input 
+     * @param {Boolean} isFromStdin 
+     * @param {(sender, server, args: Array<*>) => void|Promise<*>} handler 
+     */
     static async tryExecute(sender, server, input, isFromStdin, handler) {
         if (!input || input.length === 0) {
             handler(null, '');
@@ -49,11 +57,14 @@ class Command {
             handler(new Error(`command '${name}' doesn't exist`));
             return;
         }
+        if (!isFromStdin && sender.level < cmd.level) {
+            return;
+        }
         if (isFromStdin && cmd.cmdAllowance === CommandAllowance.PLAYER_ONLY) {
             handler(new Error(`this command can only be used in game`));
             return;
         } else if (!isFromStdin && cmd.cmdAllowance === CommandAllowance.SERVER_ONLY) {
-            handler(new Error(`this command can only be used from a console`));
+            handler(new Error(`This command can only be used from a console`));
             return;
         }
         params[0] = server;
@@ -61,7 +72,6 @@ class Command {
         let result = await cmd.handler.apply(null, params);
         if (result instanceof Promise) {
             result.then((value) => {
-                console.log('resolved promise');
                 handler(null, value);
             }).catch((reason) => {
                 handler(reason, null);
