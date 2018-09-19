@@ -1,4 +1,5 @@
 const Command = require('./../command');
+const colors = require('colors');
 
 class HelpCommand extends Command {
     constructor() {
@@ -7,7 +8,7 @@ class HelpCommand extends Command {
             let result = [];
             for (let name in Command.registeredCommands) {
                 let cmd = Command.registeredCommands[name];
-                if (name.indexOf(search) > -1) result.push(`${cmd.name}: ${cmd.description}`);
+                if (name.indexOf(search) > -1) result.push(`${colors.yellow(cmd.name)}: ${cmd.description}`);
             }
             return result.join('\r\n');
         })

@@ -34,6 +34,18 @@ function convertStringToParamsArray(input) {
     return result;
 }
 
+function stringify(input, newLine = false) {
+    if (Array.isArray(input)) return `[${input.map(stringify).join(`, ${newLine === true ? '\r\n' : ''}`)}]`;
+    if (input.toString() === '[object Object]') {
+        let result = '';
+        for (let field in input) {
+            result += `${field}: ${stringify(input[field])}, ${newLine === true ? '\r\n' : ''}`;
+        }
+        return `{${newLine === true ? '\r\n' : ''} ${result} ${newLine === true ? '\r\n' : ''}}`;
+    }
+    return input.toString();
+}
+
 function normalizeValue(value) {
     if (value === 'true') return true;
     if (value === 'false') return false;
@@ -63,5 +75,6 @@ module.exports = {
     AUTHOR,
     MessageType,
     convertStringToParamsArray,
-    readdirdeep
+    readdirdeep,
+    stringify
 }

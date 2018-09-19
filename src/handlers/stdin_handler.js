@@ -1,12 +1,13 @@
 const Command = require('./../command');
 const colors = require('colors');
 const CommandSender = require('./../cmd_sender');
+const utils = require('./../utils');
 /**
  * The handler class for any STDIN of the console.
  */
 class InputHandler extends CommandSender {
     constructor(o2, input, output) {
-        super(input);
+        super(input, true);
         this.o2 = o2;
         this.input = input;
         this.output = output;
@@ -17,7 +18,7 @@ class InputHandler extends CommandSender {
                     this.output.write(colors.red(`${err.message}\r\n`));
                     return;
                 }
-                this.output.write(result + '\r\n');
+                this.output.write(utils.stringify(result, true) + '\r\n');
             });
         });
     }

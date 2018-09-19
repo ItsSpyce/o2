@@ -1,6 +1,7 @@
 class CommandSender {
-    constructor(base) {
+    constructor(base, isInputStream) {
         this.$base = base;
+        this.$isInputStream = isInputStream;
     }
 
     sendMessage(msg) {

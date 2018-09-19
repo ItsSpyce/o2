@@ -5,8 +5,8 @@ const fs = require('fs');
 
 const O2Connector = require('./../o2_connector');
 
-let instance = null;
-let isConnected = false;
+let instance;
+let isConnected;
 
 class SqlConnector extends O2Connector {
     constructor(server) {
@@ -53,6 +53,11 @@ class SqlConnector extends O2Connector {
         instance.config(options);
     }
 
+    /**
+     * 
+     * @param {String} cmd The query to execute.
+     * @param {(err:Error, result, fields) => void} callback 
+     */
     static query(cmd, callback) {
         instance.pool.query(cmd, callback);
     }

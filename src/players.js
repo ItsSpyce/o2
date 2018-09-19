@@ -1,6 +1,7 @@
 const logger = require('./logger');
 const sql = require('./connectors/sql_connector');
 const CommandSender = require('./cmd_sender');
+const dateFns = require('date-fns');
 
 const LEAVE_EVENT_REGEX = /^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d{1,5})?\/(\d+)\/([A-Za-z0-9\s]+)\s(disconnecting):\s(\w+)$/i;
 const JOIN_EVENT_REGEX = /^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d{1,5})?\/(\d+)\/([A-Za-z0-9\s]+)\s(joined)\s\[(windows)\/\3\]$/i;
@@ -16,7 +17,7 @@ class O2Player extends CommandSender {
      * @param {{steamId:String,ip:String,name:String,ping:Number,connectedSeconds:Number,voiationLevel:Number,currentLevel:Number,unspentXp:Number,health:Number,level:Number}} options 
      */
     constructor(options) {
-        super(null);
+        super(null, false);
         this.steamId = options.steamId;
         this.ip = options.ip;
         this.name = options.name;
@@ -29,9 +30,13 @@ class O2Player extends CommandSender {
         this.level = options.level || 0;
     }
 
+    /**
+     * 
+     * @param {String} msg The message to broadcast
+     */
     sendMessage(msg) {
         // for now, there's no way to PM a player, so we'll have to broadcast it. This means admins need to be careful.
-        O2.instance.sendMessage(msg);
+        O2.instance.sendMessage(`To ${this.name}: ${msg}`);
     }
 
     save() {
@@ -54,6 +59,73 @@ class O2Player extends CommandSender {
         return new Promise((resolve, reject) => {
             O2Player.getOnlinePlayers(server).then((players) => {
                 return resolve(players.map((p) => { return p.steamId }).indexOf(this.steamId) > -1);
+            }, (err) => {
+                return reject(err);
+            });
+        });
+    }
+
+    /**
+     * 
+     * @param {*} server 
+     * @param {CommandSender} sender 
+     * @param {String} reason 
+     */
+    kick(server, sender, reason) {
+        return new Promise((resolve, reject) => {
+            server.rcon.sendCommand(`kick "${this.steamId}" "${reason.toString()}"`).then((result) => {
+                sql.query(`INSERT INTO Kicks (SteamID, KickedByID, Reason, EnforcedOn) VALUES (${this.steamId}, ${sender.steamId || 'SERVER'}, ${reason}, ${Date.now()})`);
+                return resolve();
+            }, (err) => {
+                return reject('Failed to kick player: ' + err);
+            });
+        });
+    }
+
+    /**
+     * 
+     * @param {*} server 
+     * @param {CommandSender} sender 
+     * @param {String} reason 
+     * @param {Number} duration
+     * @param {Boolean} overwriteActiveBan 
+     */
+    ban(server, sender, reason, duration, overwriteActiveBan = false) {
+        return new Promise((resolve, reject) => {
+            if (duration <= 0) return reject('Duration must be positive');
+            sql.query(`SELECT * FROM Bans WHERE SteamID = ${this.steamId}`, (err, result, fields) => {
+                if (err) return reject(err);
+                result.forEach((r) => {
+                    let enforcedOn = new Date(r.EnforcedOn);
+                    let endsOn = dateFns.addMinutes(enforcedOn, r.Duration);
+                    if (dateFns.isAfter(endsOn, Date.now())) {
+                        if (!overwriteActiveBan) {
+                            return reject('This player currently has an active ban');
+                        } else {
+                            sql.query(`DELETE FROM Bans WHERE EnforcedOn = ${r.EnforcedOn}`);
+                        }
+                    }
+                });
+                sql.query(`INSERT INTO Bans (SteamID, BannedByID, Reason, EnforcedOn, Duration) VALUES (${this.steamId}, ${sender.$isInputStream ? 'CONSOLE' : sender.steamId}, ${reason}, ${Date.now()}, ${duration})`);
+                server.rcon.sendCommand(`kick "${this.steamId}" "${reason.toString()}"`).then((result) => {
+                    return resolve(`Banned ${this.name} for: ${reason}`);
+                }, (err) => {
+                    return reject(`Failed to ban user ${this.name}:\r\n${err}`);
+                });
+            })
+            
+        })
+    }
+
+    /**
+     * 
+     * @param {*} server 
+     * @param {CommandSender} sender 
+     */
+    unban(server, sender) {
+        return new Promise((resolve, reject) => {
+            sql.query(`DELETE FROM Bans WHERE SteamID = ${this.steamId}`).then((result) => {
+                return resolve('User unbanned');
             }, (err) => {
                 return reject(err);
             });
@@ -94,13 +166,17 @@ class O2Player extends CommandSender {
             if (!server) return [];
             server.rcon.sendCommand('playerlist').then((result) => {
                 let json = JSON.parse(result);
-                return resolve(null, json.map(O2Player.fromPlayerList));
+                return resolve(json.map(O2Player.fromPlayerList));
             }, (err) => {
                 return reject(err);
             });
         })
     }
     
+    /**
+     * 
+     * @param {CommandSender} sender 
+     */
     static getAllPlayers(sender) {
         sql.query('SELECT * FROM Players', (err, result, fields) => {
             if (err) {

@@ -50,6 +50,7 @@ class Command {
             handler(null, '');
             return;
         }
+        if (sender.$isInputStream === undefined) sender.$isInputStream = isFromStdin;
         var params = utils.convertStringToParamsArray(input);
         var name = params[0];
         var cmd = registeredCommands[name];
@@ -80,7 +81,7 @@ class Command {
         else if (result === undefined) {
             result = '';
         } else {
-            handler(null, result.toString());
+            handler(null, result);
         }
     }
 }
